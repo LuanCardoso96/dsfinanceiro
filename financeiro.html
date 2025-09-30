@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Financeiro — Financeiro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      color-scheme: light; 
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      color: #2d3748; 
+      margin: 0; 
+      min-height: 100vh;
+    }
+
+    /* ===== Layout com sidebar ===== */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; align-self: start;
+      height: 100vh; padding: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(31,38,135,.25);
+    }
+    .brand { font-weight: 800; letter-spacing:.5px; margin-bottom: 16px; }
+    .nav a {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color:#2d3748; font-weight:600;
+      padding: 12px 14px; border-radius: 12px; margin: 6px 0;
+      background: rgba(255,255,255,0.65); border:1px solid rgba(255,255,255,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .nav a:hover { transform: translateX(3px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .nav a.active { background: var(--primary-gradient); color:#fff; }
+
+    .content { padding: 24px; }
+    .bar { 
+      display:flex; gap:12px; justify-content:space-between; align-items:center;
+      background: var(--glass-bg); backdrop-filter: blur(20px);
+      border:1px solid var(--glass-border); border-radius:20px; padding:20px;
+      box-shadow:0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    .pill { background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px; border-radius: 25px; color:#4a5568; font-weight:500; }
+    button { padding: 12px 20px; border:0; border-radius:12px; background:var(--primary-gradient);
+      color:#fff; cursor:pointer; font-weight:600; transition: all .3s ease; box-shadow:0 4px 15px rgba(102,126,234,.4); }
+    button:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(102,126,234,.6); }
+    button.primary { background: var(--success-gradient); box-shadow:0 4px 15px rgba(79,172,254,.4); }
+    button.warn { background: var(--danger-gradient); box-shadow:0 4px 15px rgba(250,112,154,.4); }
+    button.ghost { background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#4a5568; }
+    button:disabled{opacity:.6; cursor:not-allowed; transform:none !important;}
+
+    .grid { display:grid; gap:20px; }
+    .grid-2 { grid-template-columns:1fr 1fr; }
+    .grid-3 { grid-template-columns:repeat(3,1fr); }
+
+    .card { background: var(--card-gradient); border:1px solid rgba(255,255,255,.2);
+      border-radius:20px; padding:24px; box-shadow:0 8px 32px rgba(31,38,135,.37);
+      backdrop-filter: blur(20px); transition: all .3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow:0 12px 40px rgba(31,38,135,.5); }
+    .stat { display:flex; flex-direction:column; gap:8px; }
+    .stat h3 { margin:0; font-size:14px; color:#718096; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+    .stat .v { font-size:28px; font-weight:800; background: var(--primary-gradient);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+    label { display:block; font-size:14px; color:#4a5568; margin-bottom:8px; font-weight:600; }
+    input, select, textarea {
+      width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.9); color:#2d3748; outline:none; transition: all .3s ease; font-size:14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); background:#fff; }
+    textarea { min-height:80px; resize:vertical; }
+    .row { display:grid; grid-template-columns:repeat(12,1fr); gap:16px; }
+    .col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-12{grid-column:span 12}
+    .actions{display:flex; gap:12px; align-items:center;}
+
+    table{width:100%; border-collapse:collapse; background:rgba(255,255,255,.9); border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.1);}
+    th,td{padding:16px 12px; border-bottom:1px solid rgba(0,0,0,.05); text-align:left;}
+    th{font-size:12px; color:#718096; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background: rgba(102,126,234,.1);}
+    tr:hover{ background: rgba(102,126,234,.05); }
+
+    .right{text-align:right}
+    .ok{color:#38a169;font-weight:700}
+    .bad{color:#e53e3e;font-weight:700}
+    .muted{color:#a0aec0}
+    .tag{font-size:11px; padding:4px 12px; border-radius:20px; border:1px solid rgba(255,255,255,.3);
+      background: var(--success-gradient); color:#fff; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* Mobile: sidebar vira off-canvas */
+    .menuBtn{display:none}
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 0 1fr; }
+      .sidebar { position: fixed; left: -280px; top: 0; height: 100vh; width: 260px; z-index: 50; border-right: 0; border-radius: 0; }
+      .sidebar.open { left: 0; transition: left .25s; }
+      .menuBtn{display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px}
+    }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.25); display:none; z-index: 40; }
+    .overlay.show{ display:block; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">⚙️ DS Engenharia</div>
+      <nav class="nav">
+        <a href="home.html">🏠 Painel</a>
+        <a class="active" href="financeiro.html">💰 Financeiro</a>
+        <a href="pessoas.html">👥 Pessoas</a>
+        <a href="agenda.html">🗓️ Agenda</a>
+        <a href="emitente.html">🏢 Emitente</a>
+      </nav>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Conteúdo ===== -->
+    <main class="content">
+      <!-- Top bar -->
+      <div class="bar">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button class="menuBtn ghost" id="menuBtn">☰</button>
+          <strong>DS Financeiro</strong>
+          <span class="pill" id="userEmail">Carregando...</span>
+        </div>
+        <div class="actions">
+          <select id="yearSel" class="pill"></select>
+          <select id="monthSel" class="pill"></select>
+          <select id="catFilter" class="pill">
+            <option value="">Todas categorias</option>
+            <option value="Serviços">Serviços</option>
+            <option value="Funcionários">Funcionários</option>
+            <option value="Fornecedores">Fornecedores</option>
+            <option value="Despesas Mensais">Despesas Mensais</option>
+            <option value="Impostos">Impostos</option>
+            <option value="Outros">Outros</option>
+          </select>
+          <button id="refreshBtn" class="ghost">Atualizar</button>
+          <button id="logoutBtn">Sair</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-3" style="margin-top:16px">
+        <div class="card stat">
+          <h3>Entradas do mês</h3>
+          <div class="v ok" id="sumIn">R$ 0,00</div>
+        </div>
+        <div class="card stat">
+          <h3>Saídas do mês</h3>
+          <div class="v bad" id="sumOut">R$ 0,00</div>
+        </div>
+        <div class="card stat">
+          <h3>Saldo do mês</h3>
+          <div class="v" id="sumBal">R$ 0,00</div>
+          <small class="muted">Considera o saldo inicial configurado abaixo</small>
+        </div>
+      </div>
+
+      <!-- Saldo inicial -->
+      <div class="card" style="margin-top:16px">
+        <div class="row">
+          <div class="col-3">
+            <label>Saldo inicial do mês</label>
+            <input id="openingBalance" type="number" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="col-3">
+            <label>&nbsp;</label>
+            <button id="saveOpening" class="primary" style="width:100%">Salvar saldo inicial</button>
+          </div>
+          <div class="col-6">
+            <label>Observação</label>
+            <input id="openingNote" placeholder="Ex.: saldo vindo do mês anterior" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="margin:0 0 12px">Novo lançamento</h3>
+        <div class="row">
+          <div class="col-3"><label>Data</label><input id="date" type="date" /></div>
+          <div class="col-2">
+            <label>Ação</label>
+            <select id="type">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label>Categoria</label>
+            <select id="category">
+              <option>Serviços</option><option>Funcionários</option><option>Fornecedores</option>
+              <option>Despesas Mensais</option><option>Impostos</option><option>Outros</option>
+            </select>
+          </div>
+          <div class="col-4">
+            <label>Modalidade</label>
+            <select id="modality">
+              <option>Entrada</option><option>Despesa Mensal</option><option>Fornecedores</option>
+              <option>Obra</option><option>ART</option><option>Imposto</option><option>Outros</option>
+            </select>
+          </div>
+
+          <div class="col-4"><label>Descrição</label><input id="description" placeholder="Ex.: Pagamento mensal, Reembolso, Serviço X..." /></div>
+          <div class="col-2"><label>COD</label><input id="cod" placeholder="Opcional" /></div>
+          <div class="col-3"><label>Banco</label><input id="bank" placeholder="Itaú, Nubank..." /></div>
+          <div class="col-3"><label>Nº Parcela</label><input id="parcel" placeholder="Ex.: 1/6" /></div>
+
+          <div class="col-3"><label>Valor Entrada</label><input id="inValue" type="number" step="0.01" placeholder="0.00" /></div>
+          <div class="col-3"><label>Valor Saída</label><input id="outValue" type="number" step="0.01" placeholder="0.00" /></div>
+          <div class="col-3"><label>Valor da Nota (opcional)</label><input id="invoiceValue" type="number" step="0.01" placeholder="0.00" /></div>
+          <div class="col-12"><label>Forma de pagamento / Observação</label>
+            <textarea id="paymentNote" placeholder="Pix, crédito, boleto, descrição detalhada..."></textarea></div>
+        </div>
+
+        <div class="actions" style="margin-top:12px">
+          <button id="saveBtn" class="primary">Salvar lançamento</button>
+          <button id="clearBtn" class="ghost">Limpar</button>
+          <span id="formMsg" class="muted"></span>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h3 style="margin:0">Lançamentos do mês</h3>
+          <small class="muted">Ordenado por data ↑</small>
+        </div>
+        <div style="overflow:auto">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th>DIA</th><th>MÊS</th><th>ANO</th><th>COD</th><th>DESCRIÇÃO</th>
+                <th>MODALIDADE</th><th>AÇÃO</th>
+                <th class="right">ENTRADA</th><th class="right">SAÍDA</th>
+                <th class="right">SALDO</th><th>Nº PARCELA</th>
+                <th class="right">VALOR NOTA</th><th>BANCO</th>
+                <th>FORMA DE PAGAMENTO / DESCRIÇÃO</th><th>CATEGORIA</th>
+                <th style="width:140px">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Firebase + lógica -->
+  <script type="module">
+    // ===== Sidebar responsiva =====
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const openSide = (open)=>{ if(!sidebar) return; sidebar.classList.toggle('open', open); overlay.classList.toggle('show', open); };
+    menuBtn?.addEventListener('click', ()=> openSide(!sidebar.classList.contains('open')));
+    overlay?.addEventListener('click', ()=> openSide(false));
+
+    // ===== Firebase =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+      getDocs, getDoc, setDoc, query, where, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzkyivgowWSmQvFkffH7XBY8sr4s9NPjg",
+      authDomain: "dsfinanceiro.firebaseapp.com",
+      projectId: "dsfinanceiro",
+      storageBucket: "dsfinanceiro.firebasestorage.app",
+      messagingSenderId: "168309426919",
+      appId: "1:168309426919:web:b83c7928daef5403673042",
+      measurementId: "G-ZPJMXB7KD6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI refs
+    const userEmailEl = document.getElementById('userEmail');
+    const yearSel = document.getElementById('yearSel');
+    const monthSel = document.getElementById('monthSel');
+    const catFilter = document.getElementById('catFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const openingBalanceInp = document.getElementById('openingBalance');
+    const openingNoteInp = document.getElementById('openingNote');
+    const saveOpeningBtn = document.getElementById('saveOpening');
+
+    const dateInp = document.getElementById('date');
+    const typeSel = document.getElementById('type');
+    const categorySel = document.getElementById('category');
+    const modalitySel = document.getElementById('modality');
+    const descriptionInp = document.getElementById('description');
+    const codInp = document.getElementById('cod');
+    const bankInp = document.getElementById('bank');
+    const parcelInp = document.getElementById('parcel');
+    const inValueInp = document.getElementById('inValue');
+    const outValueInp = document.getElementById('outValue');
+    const invoiceValueInp = document.getElementById('invoiceValue');
+    const paymentNoteInp = document.getElementById('paymentNote');
+    const saveBtn = document.getElementById('saveBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const formMsg = document.getElementById('formMsg');
+
+    const tbody = document.getElementById('tbody');
+    const sumInEl = document.getElementById('sumIn');
+    const sumOutEl = document.getElementById('sumOut');
+    const sumBalEl = document.getElementById('sumBal');
+
+    let currentUser = null;
+    let editingId = null;
+    let openingBalance = 0;
+
+    const fmtBRL = (n) => (n || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+    const todayISO = () => new Date().toISOString().slice(0,10);
+
+    // período
+    (function initPeriod() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth()+1;
+      for (let yy = y - 2; yy <= y + 1; yy++) {
+        const opt = document.createElement('option');
+        opt.value = String(yy); opt.textContent = String(yy);
+        if (yy === y) opt.selected = true; yearSel.appendChild(opt);
+      }
+      for (let i=1;i<=12;i++){
+        const opt = document.createElement('option');
+        opt.value = String(i); opt.textContent = String(i);
+        if (i === m) opt.selected = true; monthSel.appendChild(opt);
+      }
+      dateInp.value = todayISO();
+    })();
+
+    // Auth
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return (window.location.href="index.html");
+      currentUser = user;
+      userEmailEl.textContent = user.email || "Usuário";
+      await loadOpeningBalance();
+      await loadData();
+    });
+
+    logoutBtn.onclick = () => signOut(auth).then(() => window.location.href="index.html");
+    refreshBtn.onclick = async () => { await loadOpeningBalance(); await loadData(); };
+    monthSel.onchange = refreshBtn.onclick;
+    yearSel.onchange = refreshBtn.onclick;
+    catFilter.onchange = refreshBtn.onclick;
+
+    // saldo inicial
+    const obDocRef = () => doc(db, "monthlyBalances", `${currentUser.uid}_${yearSel.value}_${monthSel.value}`);
+
+    async function loadOpeningBalance() {
+      if (!currentUser) return;
+      const snap = await getDoc(obDocRef());
+      if (snap.exists()) {
+        const d = snap.data();
+        openingBalance = Number(d.opening || 0);
+        openingBalanceInp.value = openingBalance;
+        openingNoteInp.value = d.note || "";
+      } else {
+        openingBalance = 0;
+        openingBalanceInp.value = "";
+        openingNoteInp.value = "";
+      }
+    }
+
+    saveOpeningBtn.onclick = async () => {
+      if (!currentUser) return;
+      const opening = Number(openingBalanceInp.value || 0);
+      const note = openingNoteInp.value || "";
+      await setDoc(obDocRef(), { uid: currentUser.uid, year: Number(yearSel.value), month: Number(monthSel.value), opening, note, updatedAt: serverTimestamp() }, { merge:true });
+      openingBalance = opening;
+      await loadData();
+    };
+
+    typeSel.onchange = () => {
+      if (typeSel.value === "entrada") outValueInp.value = "";
+      else inValueInp.value = "";
+    };
+
+    clearBtn.onclick = () => {
+      editingId = null; formMsg.textContent = ""; saveBtn.textContent = "Salvar lançamento";
+      dateInp.value = todayISO(); typeSel.value = "entrada"; categorySel.value = "Serviços"; modalitySel.value = "Entrada";
+      descriptionInp.value = ""; codInp.value = ""; bankInp.value = ""; parcelInp.value = "";
+      inValueInp.value = ""; outValueInp.value = ""; invoiceValueInp.value = ""; paymentNoteInp.value = "";
+    };
+
+    saveBtn.onclick = async () => {
+      if (!currentUser) return;
+      formMsg.textContent = "Processando...";
+      const dt = new Date(dateInp.value || todayISO());
+      const day = dt.getDate(); const month = dt.getMonth()+1; const year = dt.getFullYear();
+      const type = typeSel.value;
+      const entrada = Number(inValueInp.value || 0);
+      const saida = Number(outValueInp.value || 0);
+
+      if (type === "entrada" && entrada <= 0) { formMsg.textContent = "Informe o valor de Entrada."; return; }
+      if (type === "saida" && saida <= 0) { formMsg.textContent = "Informe o valor de Saída."; return; }
+
+      const docData = {
+        uid: currentUser.uid, date: dt, day, month, year, type,
+        category: categorySel.value, modality: modalitySel.value,
+        description: descriptionInp.value || "", cod: codInp.value || "",
+        bank: bankInp.value || "", parcel: parcelInp.value || "",
+        entrada: type === "entrada" ? entrada : 0,
+        saida: type === "saida" ? saida : 0,
+        invoiceValue: Number(invoiceValueInp.value || 0),
+        paymentNote: paymentNoteInp.value || "",
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (editingId) { await updateDoc(doc(db, "launches", editingId), docData); formMsg.textContent = "Lançamento atualizado!"; }
+        else { await addDoc(collection(db, "launches"), docData); formMsg.textContent = "Lançamento salvo!"; }
+        clearBtn.click(); await loadData();
+      } catch (e) {
+        console.error(e);
+        formMsg.textContent = "Erro ao salvar. (Se aparecer link de índice no console, clique para criar o índice do Firestore).";
+      }
+    };
+
+    async function loadData() {
+      if (!currentUser) return;
+      tbody.innerHTML = "<tr><td colspan='16'>Carregando...</td></tr>";
+      let rows = [];
+      try {
+        const q = query(
+          collection(db, "launches"),
+          where("uid", "==", currentUser.uid),
+          where("year", "==", Number(yearSel.value)),
+          where("month", "==", Number(monthSel.value))
+        );
+        const snap = await getDocs(q);
+        snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+
+        // ordena por data no JS (evita índice composto)
+        rows.sort((a,b)=>{
+          const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+          const dbb = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+          return da - dbb;
+        });
+
+        const cat = catFilter.value;
+        if (cat) rows = rows.filter(r => (r.category || "") === cat);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        if (error.code === 'failed-precondition') {
+          tbody.innerHTML = `
+            <tr><td colspan='16' class='muted'>
+              <strong>⚠️ Índice necessário no Firestore</strong><br>
+              Abra o link do erro no console do navegador para criar automaticamente.
+            </td></tr>`;
+        } else {
+          tbody.innerHTML = "<tr><td colspan='16' class='muted'>Erro ao carregar dados. Verifique o console.</td></tr>";
+        }
+        return;
+      }
+
+      // Totais e saldo acumulado
+      let sumIn = 0, sumOut = 0;
+      let running = Number(openingBalance || 0);
+      const tds = [];
+
+      rows.forEach(r => {
+        const ent = Number(r.entrada||0), sai = Number(r.saida||0);
+        sumIn += ent; sumOut += sai; running += (ent - sai);
+        const tr = `
+          <tr>
+            <td>${String(r.day).padStart(2,'0')}</td>
+            <td>${r.month}</td>
+            <td>${r.year}</td>
+            <td>${r.cod||""}</td>
+            <td>${(r.description||"").replace(/</g,"&lt;")}</td>
+            <td>${r.modality||""}</td>
+            <td><span class="tag">${r.type==='entrada'?'Entrada':'Saída'}</span></td>
+            <td class="right ok">${ent?fmtBRL(ent):""}</td>
+            <td class="right bad">${sai?fmtBRL(sai):""}</td>
+            <td class="right">${fmtBRL(running)}</td>
+            <td>${r.parcel||""}</td>
+            <td class="right">${r.invoiceValue?fmtBRL(Number(r.invoiceValue)):''}</td>
+            <td>${r.bank||""}</td>
+            <td>${(r.paymentNote||"").replace(/</g,"&lt;")}</td>
+            <td>${r.category||""}</td>
+            <td>
+              <div class="actions">
+                <button class="ghost" onclick='window.__edit("${r.id}")'>Editar</button>
+                <button class="warn" onclick='window.__del("${r.id}")'>Excluir</button>
+              </div>
+            </td>
+          </tr>`;
+        tds.push(tr);
+      });
+
+      tbody.innerHTML = tds.join('') || "<tr><td colspan='16' class='muted'>Sem lançamentos para este período.</td></tr>";
+      sumInEl.textContent = fmtBRL(sumIn);
+      sumOutEl.textContent = fmtBRL(sumOut);
+      sumBalEl.textContent = fmtBRL((openingBalance||0) + sumIn - sumOut);
+    }
+
+    // Excluir & Editar
+    window.__del = async (id) => {
+      if (!confirm("Excluir este lançamento?")) return;
+      await deleteDoc(doc(db, "launches", id));
+      await loadData();
+    };
+    window.__edit = async (id) => {
+      const ref = doc(db, "launches", id);
+      const s = await getDoc(ref);
+      if (!s.exists()) return;
+      const r = s.data();
+      editingId = id; document.getElementById('saveBtn').textContent = "Atualizar lançamento";
+      const d = r.date?.toDate ? r.date.toDate() : new Date(r.date);
+      document.getElementById('date').value = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+      document.getElementById('type').value = r.type || "entrada";
+      document.getElementById('category').value = r.category || "Outros";
+      document.getElementById('modality').value = r.modality || "Outros";
+      document.getElementById('description').value = r.description || "";
+      document.getElementById('cod').value = r.cod || "";
+      document.getElementById('bank').value = r.bank || "";
+      document.getElementById('parcel').value = r.parcel || "";
+      document.getElementById('inValue').value = Number(r.entrada||0) || "";
+      document.getElementById('outValue').value = Number(r.saida||0) || "";
+      document.getElementById('invoiceValue').value = Number(r.invoiceValue||0) || "";
+      document.getElementById('paymentNote').value = r.paymentNote || "";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+  </script>
+</body>
+</html>

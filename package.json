@@ -1,0 +1,22 @@
+{
+  "name": "ds-financeiro",
+  "version": "1.0.0",
+  "description": "Sistema financeiro DS",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": ["financeiro", "firebase", "web"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+
+

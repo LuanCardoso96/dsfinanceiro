@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Financeiro — Pessoas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      color-scheme: light; 
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      color: #2d3748; 
+      margin: 0; 
+      min-height: 100vh;
+    }
+
+    /* ===== Layout com sidebar ===== */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; align-self: start;
+      height: 100vh; padding: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(31,38,135,.25);
+    }
+    .brand { font-weight: 800; letter-spacing:.5px; margin-bottom: 16px; }
+    .nav a {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color:#2d3748; font-weight:600;
+      padding: 12px 14px; border-radius: 12px; margin: 6px 0;
+      background: rgba(255,255,255,0.65); border:1px solid rgba(255,255,255,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .nav a:hover { transform: translateX(3px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .nav a.active { background: var(--primary-gradient); color:#fff; }
+
+    .content { padding: 24px; }
+    .bar { 
+      display:flex; gap:12px; justify-content:space-between; align-items:center;
+      background: var(--glass-bg); backdrop-filter: blur(20px);
+      border:1px solid var(--glass-border); border-radius:20px; padding:20px;
+      box-shadow:0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    .pill { background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px; border-radius: 25px; color:#4a5568; font-weight:500; }
+    button { padding: 12px 20px; border:0; border-radius:12px; background:var(--primary-gradient);
+      color:#fff; cursor:pointer; font-weight:600; transition: all .3s ease; box-shadow:0 4px 15px rgba(102,126,234,.4); }
+    button:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(102,126,234,.6); }
+    button.primary { background: var(--success-gradient); box-shadow:0 4px 15px rgba(79,172,254,.4); }
+    button.warn { background: var(--danger-gradient); box-shadow:0 4px 15px rgba(250,112,154,.4); }
+    button.ghost { background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#4a5568; }
+    button:disabled{opacity:.6; cursor:not-allowed; transform:none !important;}
+
+    .grid { display:grid; gap:20px; }
+    .grid-2 { grid-template-columns:1fr 1fr; }
+    .grid-3 { grid-template-columns:repeat(3,1fr); }
+
+    .card { background: var(--card-gradient); border:1px solid rgba(255,255,255,.2);
+      border-radius:20px; padding:24px; box-shadow:0 8px 32px rgba(31,38,135,.37);
+      backdrop-filter: blur(20px); transition: all .3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow:0 12px 40px rgba(31,38,135,.5); }
+
+    label { display:block; font-size:14px; color:#4a5568; margin-bottom:8px; font-weight:600; }
+    input, select, textarea {
+      width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.9); color:#2d3748; outline:none; transition: all .3s ease; font-size:14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); background:#fff; }
+
+    table{width:100%; border-collapse:collapse; background:rgba(255,255,255,.9); border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.1);}
+    th,td{padding:16px 12px; border-bottom:1px solid rgba(0,0,0,.05); text-align:left;}
+    th{font-size:12px; color:#718096; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background: rgba(102,126,234,.1);}
+    tr:hover{ background: rgba(102,126,234,.05); }
+
+    .right{text-align:right}
+    .ok{color:#38a169;font-weight:700}
+    .bad{color:#e53e3e;font-weight:700}
+    .muted{color:#a0aec0}
+
+    /* Mobile: sidebar vira off-canvas */
+    .menuBtn{display:none}
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 0 1fr; }
+      .sidebar { position: fixed; left: -280px; top: 0; height: 100vh; width: 260px; z-index: 50; border-right: 0; border-radius: 0; }
+      .sidebar.open { left: 0; transition: left .25s; }
+      .menuBtn{display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px}
+    }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.25); display:none; z-index: 40; }
+    .overlay.show{ display:block; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">⚙️ DS Engenharia</div>
+      <nav class="nav">
+        <a href="home.html">🏠 Painel</a>
+        <a href="financeiro.html">💰 Financeiro</a>
+        <a class="active" href="pessoas.html">👥 Pessoas</a>
+        <a href="agenda.html">🗓️ Agenda</a>
+        <a href="emitente.html">🏢 Emitente</a>
+      </nav>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Conteúdo ===== -->
+    <main class="content">
+      <!-- Top bar -->
+      <div class="bar">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button class="menuBtn ghost" id="menuBtn">☰</button>
+          <strong>Pessoas (Funcionários)</strong>
+        </div>
+      </div>
+      <!-- Formulário -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="margin:0 0 12px">Novo Funcionário</h3>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px">
+          <div><label>Nome</label><input id="name"></div>
+          <div><label>Função</label><input id="role" placeholder="Ex.: Engenheiro"></div>
+          <div><label>Data de Entrada</label><input id="admission" type="date"></div>
+          <div><label>Salário (R$)</label><input id="salary" type="number" step="0.01"></div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
+          <button id="save" class="primary">Salvar</button>
+          <button id="clear" class="ghost">Limpar</button>
+          <button id="delete" class="warn" style="display:none">Excluir Funcionário</button>
+          <span id="msg" class="muted"></span>
+        </div>
+      </div>
+    
+      <!-- Lista de Funcionários -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">Funcionários</h3>
+          <strong>Total da folha: <span id="payroll">R$ 0,00</span></strong>
+        </div>
+        <div style="overflow:auto;margin-top:12px">
+          <table>
+            <thead><tr><th>Nome</th><th>Função</th><th>Admissão</th><th class="right">Salário</th><th style="width:140px">Ações</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+    
+    <script type="module">
+    // ===== Sidebar responsiva =====
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const openSide = (open)=>{ if(!sidebar) return; sidebar.classList.toggle('open', open); overlay.classList.toggle('show', open); };
+    menuBtn?.addEventListener('click', ()=> openSide(!sidebar.classList.contains('open')));
+    overlay?.addEventListener('click', ()=> openSide(false));
+
+    // ===== Firebase =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    
+    const firebaseConfig={apiKey:"AIzaSyDzkyivgowWSmQvFkffH7XBY8sr4s9NPjg",authDomain:"dsfinanceiro.firebaseapp.com",projectId:"dsfinanceiro",storageBucket:"dsfinanceiro.firebasestorage.app",messagingSenderId:"168309426919",appId:"1:168309426919:web:b83c7928daef5403673042"};
+    const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+    const el=id=>document.getElementById(id), fmt=n=>(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    let uid=null, editId=null;
+    
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return location.href='index.html';
+      uid=user.uid;
+      await load();
+    });
+    
+    async function load(){
+      try {
+        // Buscar apenas por uid (evita índice composto)
+        const qy=query(collection(db,"funcionarios"), where("uid","==",uid));
+        const snap=await getDocs(qy);
+        let funcionarios=[], total=0;
+        
+        // Coletar dados
+        snap.forEach(s=>{
+          const r=s.data(); 
+          funcionarios.push({ id: s.id, ...r });
+          total += Number(r.salary||0);
+        });
+        
+        // Ordenar por data de criação no JavaScript (mais recente primeiro)
+        funcionarios.sort((a,b)=>{
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+          return dateB - dateA; // Descendente
+        });
+        
+        // Gerar HTML
+        const rows = funcionarios.map(r => `
+          <tr>
+            <td>${(r.name||'').replace(/</g,'&lt;')}</td>
+            <td>${r.role||''}</td>
+            <td>${r.admission? new Date(r.admission.seconds? r.admission.toDate():r.admission).toLocaleDateString('pt-BR') : ''}</td>
+            <td class="right">${fmt(Number(r.salary||0))}</td>
+            <td>
+              <button onclick='window.__edit("${r.id}")' class="ghost" style="padding:8px 12px;font-size:12px">Editar</button>
+              <button onclick='window.__pay("${r.id}")' class="primary" style="padding:8px 12px;font-size:12px">Pagar</button>
+            </td>
+          </tr>
+        `);
+        
+        el('tbody').innerHTML=rows.join('')||'<tr><td colspan="5">Sem funcionários.</td></tr>';
+        el('payroll').textContent=fmt(total);
+      } catch (error) {
+        console.error("Erro ao carregar funcionários:", error);
+        if (error.code === 'failed-precondition') {
+          el('tbody').innerHTML = `
+            <tr><td colspan="5" class="muted">
+              <strong>⚠️ Índice necessário no Firestore</strong><br>
+              Abra o link do erro no console do navegador para criar automaticamente.
+            </td></tr>`;
+        } else {
+          el('tbody').innerHTML = '<tr><td colspan="5" class="muted">Erro ao carregar funcionários. Verifique o console.</td></tr>';
+        }
+      }
+    }
+    
+    el('save').onclick=async()=>{
+      const d={
+        uid, name:el('name').value.trim(), role:el('role').value.trim(),
+        admission: el('admission').value ? new Date(el('admission').value) : null,
+        salary: Number(el('salary').value||0),
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      };
+      if(!d.name){ el('msg').textContent="Informe o nome."; return; }
+      if(editId){ await updateDoc(doc(db,"funcionarios",editId), d); el('msg').textContent="Atualizado!"; }
+      else{ await addDoc(collection(db,"funcionarios"), d); el('msg').textContent="Salvo!"; }
+      editId=null; el('clear').click(); await load();
+    };
+    el('clear').onclick=()=>{
+      editId=null; 
+      el('name').value=""; 
+      el('role').value=""; 
+      el('admission').value=""; 
+      el('salary').value="";
+      el('msg').textContent="";
+      el('save').textContent="Salvar";
+      el('delete').style.display="none";
+    };
+    
+    // Função de excluir (agora no formulário)
+    el('delete').onclick=async()=>{ 
+      if(confirm("Excluir funcionário?")){ 
+        await deleteDoc(doc(db,"funcionarios",editId)); 
+        el('clear').click();
+        await load(); 
+      } 
+    };
+    
+    window.__edit=async(id)=>{
+      try {
+        const s=await getDoc(doc(db,"funcionarios",id));
+        if(!s.exists()) return;
+        const r=s.data();
+        
+        editId=id;
+        el('name').value=r.name||"";
+        el('role').value=r.role||"";
+        el('admission').value = r.admission ? new Date(r.admission.seconds? r.admission.toDate():r.admission).toISOString().slice(0,10) : "";
+        el('salary').value=r.salary||"";
+        el('msg').textContent="Editando...";
+        el('save').textContent="Atualizar funcionário";
+        el('delete').style.display="inline-block";
+        
+        // Scroll para o formulário
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (error) {
+        console.error("Erro ao carregar funcionário:", error);
+        el('msg').textContent="Erro ao carregar dados.";
+      }
+    };
+
+    // Função de pagamento
+    window.__pay = async (funcionarioId) => {
+      try {
+        // Buscar dados do funcionário
+        const funcionarioDoc = await getDoc(doc(db, "funcionarios", funcionarioId));
+        if (!funcionarioDoc.exists()) {
+          alert("Funcionário não encontrado!");
+          return;
+        }
+        
+        const funcionario = funcionarioDoc.data();
+        const salario = Number(funcionario.salary || 0);
+        
+        if (salario <= 0) {
+          alert("Salário não configurado para este funcionário!");
+          return;
+        }
+
+        // Confirmar pagamento
+        const confirmar = confirm(`Confirmar pagamento de ${fmt(salario)} para ${funcionario.name}?`);
+        if (!confirmar) return;
+
+        // Obter data atual
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth() + 1;
+        const dia = hoje.getDate();
+
+        // Criar lançamento de saída no financeiro
+        const lancamentoData = {
+          uid: uid,
+          date: hoje,
+          day: dia,
+          month: mes,
+          year: ano,
+          type: "saida",
+          category: "Funcionários",
+          modality: "Salário",
+          description: `Pagamento de salário - ${funcionario.name}`,
+          cod: "",
+          bank: "",
+          parcel: "",
+          entrada: 0,
+          saida: salario,
+          invoiceValue: 0,
+          paymentNote: `Pagamento mensal de ${funcionario.name} (${funcionario.role || 'Funcionário'})`,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        // Salvar lançamento
+        await addDoc(collection(db, "launches"), lancamentoData);
+        
+        // Registrar pagamento na coleção de pagamentos
+        const pagamentoData = {
+          uid: uid,
+          funcionarioId: funcionarioId,
+          funcionarioName: funcionario.name,
+          valor: salario,
+          data: hoje,
+          mes: mes,
+          ano: ano,
+          descricao: `Pagamento de salário - ${funcionario.name}`,
+          createdAt: serverTimestamp()
+        };
+        
+        await addDoc(collection(db, "pagamentos"), pagamentoData);
+        
+        alert(`Pagamento de ${fmt(salario)} realizado com sucesso para ${funcionario.name}!`);
+        
+        // Recarregar dados
+        await load();
+        
+      } catch (error) {
+        console.error("Erro ao processar pagamento:", error);
+        alert("Erro ao processar pagamento. Verifique o console para mais detalhes.");
+      }
+    };
+    </script>
+    </body></html>
+    

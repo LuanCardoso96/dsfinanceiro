@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Financeiro — Agenda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      color-scheme: light; 
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      color: #2d3748; 
+      margin: 0; 
+      min-height: 100vh;
+    }
+
+    /* ===== Layout com sidebar ===== */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; align-self: start;
+      height: 100vh; padding: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(31,38,135,.25);
+    }
+    .brand { font-weight: 800; letter-spacing:.5px; margin-bottom: 16px; }
+    .nav a {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color:#2d3748; font-weight:600;
+      padding: 12px 14px; border-radius: 12px; margin: 6px 0;
+      background: rgba(255,255,255,0.65); border:1px solid rgba(255,255,255,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .nav a:hover { transform: translateX(3px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .nav a.active { background: var(--primary-gradient); color:#fff; }
+
+    .content { padding: 24px; }
+    .bar { 
+      display:flex; gap:12px; justify-content:space-between; align-items:center;
+      background: var(--glass-bg); backdrop-filter: blur(20px);
+      border:1px solid var(--glass-border); border-radius:20px; padding:20px;
+      box-shadow:0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    .pill { background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px; border-radius: 25px; color:#4a5568; font-weight:500; }
+    button { padding: 12px 20px; border:0; border-radius:12px; background:var(--primary-gradient);
+      color:#fff; cursor:pointer; font-weight:600; transition: all .3s ease; box-shadow:0 4px 15px rgba(102,126,234,.4); }
+    button:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(102,126,234,.6); }
+    button.primary { background: var(--success-gradient); box-shadow:0 4px 15px rgba(79,172,254,.4); }
+    button.warn { background: var(--danger-gradient); box-shadow:0 4px 15px rgba(250,112,154,.4); }
+    button.ghost { background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#4a5568; }
+    button:disabled{opacity:.6; cursor:not-allowed; transform:none !important;}
+
+    .grid { display:grid; gap:20px; }
+    .grid-2 { grid-template-columns:1fr 1fr; }
+    .grid-3 { grid-template-columns:repeat(3,1fr); }
+
+    .card { background: var(--card-gradient); border:1px solid rgba(255,255,255,.2);
+      border-radius:20px; padding:24px; box-shadow:0 8px 32px rgba(31,38,135,.37);
+      backdrop-filter: blur(20px); transition: all .3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow:0 12px 40px rgba(31,38,135,.5); }
+
+    label { display:block; font-size:14px; color:#4a5568; margin-bottom:8px; font-weight:600; }
+    input, select, textarea {
+      width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.9); color:#2d3748; outline:none; transition: all .3s ease; font-size:14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); background:#fff; }
+
+    table{width:100%; border-collapse:collapse; background:rgba(255,255,255,.9); border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.1);}
+    th,td{padding:16px 12px; border-bottom:1px solid rgba(0,0,0,.05); text-align:left;}
+    th{font-size:12px; color:#718096; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background: rgba(102,126,234,.1);}
+    tr:hover{ background: rgba(102,126,234,.05); }
+
+    .right{text-align:right}
+    .ok{color:#38a169;font-weight:700}
+    .bad{color:#e53e3e;font-weight:700}
+    .muted{color:#a0aec0}
+
+    /* Mobile: sidebar vira off-canvas */
+    .menuBtn{display:none}
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 0 1fr; }
+      .sidebar { position: fixed; left: -280px; top: 0; height: 100vh; width: 260px; z-index: 50; border-right: 0; border-radius: 0; }
+      .sidebar.open { left: 0; transition: left .25s; }
+      .menuBtn{display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px}
+    }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.25); display:none; z-index: 40; }
+    .overlay.show{ display:block; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">⚙️ DS Engenharia</div>
+      <nav class="nav">
+        <a href="home.html">🏠 Painel</a>
+        <a href="financeiro.html">💰 Financeiro</a>
+        <a href="pessoas.html">👥 Pessoas</a>
+        <a class="active" href="agenda.html">🗓️ Agenda</a>
+        <a href="emitente.html">🏢 Emitente</a>
+      </nav>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Conteúdo ===== -->
+    <main class="content">
+      <!-- Top bar -->
+      <div class="bar">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button class="menuBtn ghost" id="menuBtn">☰</button>
+          <strong>Agenda</strong>
+        </div>
+      </div>
+      <!-- Formulário -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="margin:0 0 16px">Novo Evento</h3>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px">
+          <div><label>Título</label><input id="title"></div>
+          <div><label>Data</label><input id="date" type="date"></div>
+          <div><label>Hora</label><input id="time" type="time"></div>
+        </div>
+        <div style="margin-top:16px;">
+          <label>Descrição</label><textarea id="desc" placeholder="Observações..." rows="3"></textarea>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
+          <button id="save" class="primary">Salvar</button>
+          <button id="clear" class="ghost">Limpar</button>
+          <span id="msg" class="muted"></span>
+        </div>
+      </div>
+    
+      <!-- Lista de Eventos -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">Próximos eventos</h3>
+          <small class="muted">Eventos futuros ordenados por data</small>
+        </div>
+        <div style="overflow:auto;margin-top:12px">
+          <table>
+            <thead><tr><th>Quando</th><th>Título</th><th>Descrição</th><th style="width:140px">Ações</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+    
+    <script type="module">
+    // ===== Sidebar responsiva =====
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const openSide = (open)=>{ if(!sidebar) return; sidebar.classList.toggle('open', open); overlay.classList.toggle('show', open); };
+    menuBtn?.addEventListener('click', ()=> openSide(!sidebar.classList.contains('open')));
+    overlay?.addEventListener('click', ()=> openSide(false));
+
+    // ===== Firebase =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    
+    const firebaseConfig={apiKey:"AIzaSyDzkyivgowWSmQvFkffH7XBY8sr4s9NPjg",authDomain:"dsfinanceiro.firebaseapp.com",projectId:"dsfinanceiro",storageBucket:"dsfinanceiro.firebasestorage.app",messagingSenderId:"168309426919",appId:"1:168309426919:web:b83c7928daef5403673042"};
+    const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+    const el=id=>document.getElementById(id); let uid=null;
+    
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return location.href='index.html';
+      uid=user.uid; await load();
+    });
+    
+    async function load(){
+      try {
+        const now=new Date();
+        // Buscar apenas por uid (evita índice composto)
+        const qy=query(collection(db,"events"), where("uid","==",uid));
+        const snap=await getDocs(qy);
+        let events=[];
+        
+        // Coletar e filtrar dados
+        snap.forEach(s=>{
+          const r=s.data(); 
+          const d=r.when?.toDate?r.when.toDate():new Date(r.when);
+          // Filtrar apenas eventos futuros
+          if(d >= now) {
+            events.push({ id: s.id, ...r, when: d });
+          }
+        });
+        
+        // Ordenar por data no JavaScript (mais próximo primeiro)
+        events.sort((a,b)=>a.when - b.when);
+        
+        // Gerar HTML
+        const rows = events.map(r => `
+          <tr>
+            <td>${r.when.toLocaleDateString('pt-BR')} ${r.when.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
+            <td>${(r.title||'').replace(/</g,'&lt;')}</td>
+            <td>${(r.desc||'').replace(/</g,'&lt;')}</td>
+            <td><button onclick='window.__del("${r.id}")' class="warn" style="padding:8px 12px;font-size:12px">Excluir</button></td>
+          </tr>
+        `);
+        
+        el('tbody').innerHTML=rows.join('')||'<tr><td colspan="4">Sem eventos futuros.</td></tr>';
+      } catch (error) {
+        console.error("Erro ao carregar eventos:", error);
+        if (error.code === 'failed-precondition') {
+          el('tbody').innerHTML = `
+            <tr><td colspan="4" class="muted">
+              <strong>⚠️ Índice necessário no Firestore</strong><br>
+              Abra o link do erro no console do navegador para criar automaticamente.
+            </td></tr>`;
+        } else {
+          el('tbody').innerHTML = '<tr><td colspan="4" class="muted">Erro ao carregar eventos. Verifique o console.</td></tr>';
+        }
+      }
+    }
+    
+    el('save').onclick=async()=>{
+      const t=el('title').value.trim(); if(!t) return el('msg').textContent="Título obrigatório.";
+      const d=el('date').value; const h=el('time').value||"00:00";
+      const when = new Date(`${d}T${h}:00`);
+      await addDoc(collection(db,"events"),{uid,title:t,desc:el('desc').value||"",when,createdAt:serverTimestamp()});
+      el('msg').textContent="Evento criado."; el('clear').click(); await load();
+    };
+    el('clear').onclick=()=>{ el('title').value=""; el('date').value=""; el('time').value=""; el('desc').value=""; el('msg').textContent=""; };
+    
+    import { deleteDoc, doc as ddoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    window.__del=async(id)=>{ if(confirm("Excluir evento?")){ await deleteDoc(ddoc(db,"events",id)); await load(); } };
+    </script>
+    </body></html>
+    

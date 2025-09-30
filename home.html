@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Financeiro — Painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { 
+      color-scheme: light; 
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      color: #2d3748; 
+      margin: 0; 
+      min-height: 100vh;
+    }
+
+    /* ===== Layout com sidebar ===== */
+    .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; align-self: start;
+      height: 100vh; padding: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(31,38,135,.25);
+    }
+    .brand { font-weight: 800; letter-spacing:.5px; margin-bottom: 16px; }
+    .nav a {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color:#2d3748; font-weight:600;
+      padding: 12px 14px; border-radius: 12px; margin: 6px 0;
+      background: rgba(255,255,255,0.65); border:1px solid rgba(255,255,255,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .nav a:hover { transform: translateX(3px); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+    .nav a.active { background: var(--primary-gradient); color:#fff; }
+
+    .content { padding: 24px; }
+    .bar { 
+      display:flex; gap:12px; justify-content:space-between; align-items:center;
+      background: var(--glass-bg); backdrop-filter: blur(20px);
+      border:1px solid var(--glass-border); border-radius:20px; padding:20px;
+      box-shadow:0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+    .pill { background: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 16px; border-radius: 25px; color:#4a5568; font-weight:500; }
+    button { padding: 12px 20px; border:0; border-radius:12px; background:var(--primary-gradient);
+      color:#fff; cursor:pointer; font-weight:600; transition: all .3s ease; box-shadow:0 4px 15px rgba(102,126,234,.4); }
+    button:hover { transform: translateY(-2px); box-shadow:0 6px 20px rgba(102,126,234,.6); }
+    button.primary { background: var(--success-gradient); box-shadow:0 4px 15px rgba(79,172,254,.4); }
+    button.warn { background: var(--danger-gradient); box-shadow:0 4px 15px rgba(250,112,154,.4); }
+    button.ghost { background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#4a5568; }
+    button:disabled{opacity:.6; cursor:not-allowed; transform:none !important;}
+
+    .grid { display:grid; gap:20px; }
+    .grid-2 { grid-template-columns:1fr 1fr; }
+    .grid-3 { grid-template-columns:repeat(3,1fr); }
+
+    .card { background: var(--card-gradient); border:1px solid rgba(255,255,255,.2);
+      border-radius:20px; padding:24px; box-shadow:0 8px 32px rgba(31,38,135,.37);
+      backdrop-filter: blur(20px); transition: all .3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow:0 12px 40px rgba(31,38,135,.5); }
+    .kpi { display:flex; flex-direction:column; gap:8px; }
+    .kpi h3 { margin:0; font-size:14px; color:#718096; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+    .kpi .v { font-size:28px; font-weight:800; background: var(--primary-gradient);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+    table{width:100%; border-collapse:collapse; background:rgba(255,255,255,.9); border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.1);}
+    th,td{padding:16px 12px; border-bottom:1px solid rgba(0,0,0,.05); text-align:left;}
+    th{font-size:12px; color:#718096; font-weight:700; text-transform:uppercase; letter-spacing:.5px; background: rgba(102,126,234,.1);}
+    tr:hover{ background: rgba(102,126,234,.05); }
+
+    .right{text-align:right}
+    .ok{color:#38a169;font-weight:700}
+    .bad{color:#e53e3e;font-weight:700}
+    .muted{color:#a0aec0}
+
+    /* Mobile: sidebar vira off-canvas */
+    .menuBtn{display:none}
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 0 1fr; }
+      .sidebar { position: fixed; left: -280px; top: 0; height: 100vh; width: 260px; z-index: 50; border-right: 0; border-radius: 0; }
+      .sidebar.open { left: 0; transition: left .25s; }
+      .menuBtn{display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:12px}
+      .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+    .overlay { position: fixed; inset:0; background: rgba(0,0,0,.25); display:none; z-index: 40; }
+    .overlay.show{ display:block; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">⚙️ DS Engenharia</div>
+      <nav class="nav">
+        <a class="active" href="home.html">🏠 Painel</a>
+        <a href="financeiro.html">💰 Financeiro</a>
+        <a href="pessoas.html">👥 Pessoas</a>
+        <a href="agenda.html">🗓️ Agenda</a>
+        <a href="emitente.html">🏢 Emitente</a>
+      </nav>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Conteúdo ===== -->
+    <main class="content">
+      <!-- Top bar -->
+  <div class="bar">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button class="menuBtn ghost" id="menuBtn">☰</button>
+          <strong>Painel</strong>
+          <span class="pill" id="userEmail">...</span>
+    </div>
+        <div class="actions" style="display:flex; gap:12px; align-items:center;">
+          <select id="yearSel" class="pill"></select>
+          <select id="monthSel" class="pill"></select>
+          <button id="refresh" class="ghost">Atualizar</button>
+          <button id="logout">Sair</button>
+    </div>
+  </div>
+
+      <!-- KPIs -->
+      <section class="grid grid-3" style="margin-top:16px">
+        <div class="card kpi">
+          <h3>Entradas — Hoje</h3>
+          <div class="v ok" id="kInToday">R$ 0,00</div>
+        </div>
+        <div class="card kpi">
+          <h3>Entradas — Período</h3>
+          <div class="v ok" id="kInPeriod">R$ 0,00</div>
+        </div>
+        <div class="card kpi">
+          <h3>Saldo do Mês</h3>
+          <div class="v" id="kBalance">R$ 0,00</div>
+          <small class="pill" id="openingInfo" style="display:inline-block;margin-top:6px">Saldo inicial: R$ 0,00</small>
+        </div>
+      </section>
+
+      <section class="grid grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3 style="margin:0 0 10px">Vendas (Entradas) — Diário (3D)</h3>
+          <div id="chartDaily3D" style="height:340px;"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 10px">Entradas por Categoria (3D)</h3>
+          <div id="chartCat3D" style="height:340px;"></div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">Últimos lançamentos</h3>
+          <small class="muted">Fonte: coleção <b>launches</b></small>
+        </div>
+        <div style="overflow:auto;margin-top:10px">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th><th>Descrição</th><th>Categoria</th><th>Ação</th>
+                <th class="right">Entrada</th><th class="right">Saída</th><th class="right">Saldo acumulado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="grid grid-2" style="margin-top:16px">
+        <div class="card kpi">
+          <h3>Receber Hoje (títulos)</h3>
+          <div class="v ok" id="kToReceive">R$ 0,00</div>
+          <small class="muted">coleção <b>titles</b> com <code>type: "receber"</code> e <code>paid=false</code> vencendo hoje</small>
+        </div>
+        <div class="card kpi">
+          <h3>Pagar Hoje (títulos)</h3>
+          <div class="v bad" id="kToPay">R$ 0,00</div>
+          <small class="muted">coleção <b>titles</b> com <code>type: "pagar"</code> e <code>paid=false</code> vencendo hoje</small>
+        </div>
+      </section>
+  </main>
+  </div>
+
+  <!-- Libs de gráficos 3D -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2/dist/echarts-gl.min.js"></script>
+
+  <script type="module">
+    // ===== Sidebar responsiva =====
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const openSide = (open)=>{ if(!sidebar) return; sidebar.classList.toggle('open', open); overlay.classList.toggle('show', open); };
+    menuBtn?.addEventListener('click', ()=> openSide(!sidebar.classList.contains('open')));
+    overlay?.addEventListener('click', ()=> openSide(false));
+
+    // ===== Firebase =====
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // ---- Config Firebase (a sua) ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzkyivgowWSmQvFkffH7XBY8sr4s9NPjg",
+      authDomain: "dsfinanceiro.firebaseapp.com",
+      projectId: "dsfinanceiro",
+      storageBucket: "dsfinanceiro.firebasestorage.app",
+      messagingSenderId: "168309426919",
+      appId: "1:168309426919:web:b83c7928daef5403673042",
+      measurementId: "G-ZPJMXB7KD6"
+    };
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI
+    const userEmail = document.getElementById('userEmail');
+    const yearSel = document.getElementById('yearSel');
+    const monthSel = document.getElementById('monthSel');
+    const refresh = document.getElementById('refresh');
+    const logout = document.getElementById('logout');
+    const tbody = document.getElementById('tbody');
+    const kInToday = document.getElementById('kInToday');
+    const kInPeriod = document.getElementById('kInPeriod');
+    const kBalance = document.getElementById('kBalance');
+    const kToReceive = document.getElementById('kToReceive');
+    const kToPay = document.getElementById('kToPay');
+    const openingInfo = document.getElementById('openingInfo');
+
+    const fmt = (n)=> (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const today = new Date();
+    function yyyyMM(d){ return {y:d.getFullYear(), m:d.getMonth()+1}; }
+
+    // período selects
+    (function initPeriod(){
+      const {y,m} = yyyyMM(today);
+      for(let yy=y-2; yy<=y+1; yy++){
+        const o=document.createElement('option'); o.value=yy; o.textContent=yy; if(yy===y) o.selected=true; yearSel.appendChild(o);
+      }
+      for(let i=1;i<=12;i++){
+        const o=document.createElement('option'); o.value=i; o.textContent=i; if(i===m) o.selected=true; monthSel.appendChild(o);
+      }
+    })();
+
+    // Auth
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user) return location.href="index.html";
+      userEmail.textContent = user.email || "Usuário";
+      await refreshAll(user);
+    });
+
+    logout.onclick = ()=> signOut(auth).then(()=>location.href="index.html");
+    refresh.onclick = ()=> refreshAll(auth.currentUser);
+    yearSel.onchange = refresh.onclick;
+    monthSel.onchange = refresh.onclick;
+
+    // Opening balance doc helper (mesmo padrão do financeiro.html)
+    const obDocRef = (uid,y,m)=> doc(db,"monthlyBalances",`${uid}_${y}_${m}`);
+
+    async function refreshAll(user){
+      const y = Number(yearSel.value), m = Number(monthSel.value);
+      await Promise.all([
+        loadKpis(user, y, m),
+        loadTable(user, y, m),
+        loadCharts(user, y, m),
+        loadTitlesToday(user)
+      ]);
+      // saldo inicial
+      const obSnap = await getDoc(obDocRef(user.uid,y,m));
+      const opening = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
+      openingInfo.textContent = `Saldo inicial: ${fmt(opening)}`;
+    }
+
+    async function loadKpis(user,y,m){
+      try {
+        const start = new Date(); start.setHours(0,0,0,0);
+        const end = new Date(); end.setHours(23,59,59,999);
+
+        // Entradas hoje - buscar apenas por uid e filtrar no JS
+        let qToday = query(collection(db,"launches"), where("uid","==",user.uid));
+        let sumToday = 0;
+        (await getDocs(qToday)).forEach(d=>{
+          const r = d.data();
+          if (r.type === "entrada") {
+            const date = r.date?.toDate ? r.date.toDate() : new Date(r.date);
+            if (date >= start && date <= end) {
+              sumToday += Number(r.entrada||0);
+            }
+          }
+        });
+        kInToday.textContent = fmt(sumToday);
+
+        // Entradas no período (mês/ano) - buscar apenas por uid e filtrar no JS
+        let sumIn = 0, sumOut = 0;
+        (await getDocs(qToday)).forEach(d=>{
+          const r=d.data();
+          if (r.year === y && r.month === m) {
+            sumIn += Number(r.entrada||0);
+            sumOut += Number(r.saida||0);
+          }
+        });
+        kInPeriod.textContent = fmt(sumIn);
+
+        // Saldo do mês = saldoInicial + (entradas - saídas)
+        const obSnap = await getDoc(obDocRef(user.uid,y,m));
+        const opening = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
+        kBalance.textContent = fmt(opening + sumIn - sumOut);
+      } catch (error) {
+        console.error("Erro ao carregar KPIs:", error);
+        kInToday.textContent = fmt(0);
+        kInPeriod.textContent = fmt(0);
+        kBalance.textContent = fmt(0);
+      }
+    }
+
+    async function loadTable(user,y,m){
+      try {
+        // Buscar apenas por uid (evita índice composto)
+        let qMonth = query(collection(db,"launches"), where("uid","==",user.uid));
+        const snaps = await getDocs(qMonth);
+        let launches=[], running=0;
+
+        // Filtrar por ano/mês e coletar dados
+        snaps.forEach(s=>{
+          const r=s.data();
+          if (r.year === y && r.month === m) {
+            launches.push({ id: s.id, ...r });
+          }
+        });
+
+        // Ordenar por data no JavaScript
+        launches.sort((a,b)=>{
+          const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+          const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+          return dateA - dateB;
+        });
+
+        // Abre saldo inicial
+        const obSnap = await getDoc(obDocRef(user.uid,y,m));
+        running = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
+
+        // Gerar HTML
+        const rows = launches.map(r=>{
+          const d=r.date?.toDate ? r.date.toDate() : new Date(r.date);
+          running += Number(r.entrada||0) - Number(r.saida||0);
+          return `<tr>
+            <td>${d.toLocaleDateString('pt-BR')}</td>
+            <td>${(r.description||'').replace(/</g,'&lt;')}</td>
+            <td>${r.category||''}</td>
+            <td>${r.type==='entrada'?'Entrada':'Saída'}</td>
+            <td class="right ok">${r.entrada?fmt(Number(r.entrada)):""}</td>
+            <td class="right bad">${r.saida?fmt(Number(r.saida)):""}</td>
+            <td class="right">${fmt(running)}</td>
+          </tr>`;
+        });
+
+        tbody.innerHTML = rows.join('') || `<tr><td colspan="7">Sem lançamentos no período.</td></tr>`;
+      } catch (error) {
+        console.error("Erro ao carregar tabela:", error);
+        tbody.innerHTML = `<tr><td colspan="7" class="muted">Erro ao carregar dados. Verifique o console.</td></tr>`;
+      }
+    }
+
+    // ======== GRÁFICOS 3D (ECharts) ========
+    let chartDaily3D, chartCat3D;
+
+    function ensureCharts() {
+      if (!chartDaily3D) chartDaily3D = echarts.init(document.getElementById('chartDaily3D'));
+      if (!chartCat3D) chartCat3D = echarts.init(document.getElementById('chartCat3D'));
+      window.addEventListener('resize', () => {
+        chartDaily3D && chartDaily3D.resize();
+        chartCat3D && chartCat3D.resize();
+      });
+    }
+
+    async function loadCharts(user,y,m){
+      try {
+        ensureCharts();
+
+        // Buscar apenas por uid (evita índice composto)
+        const qAll = query(collection(db,"launches"), where("uid","==",user.uid));
+        const snaps = await getDocs(qAll);
+        
+        // ----- Diário (Entradas) -> Bar 3D -----
+        const mapDay = new Map(); // day -> soma
+        snaps.forEach(s=>{
+          const r=s.data();
+          if (r.year === y && r.month === m && r.type === "entrada") {
+            const d=r.date?.toDate ? r.date.toDate() : new Date(r.date);
+            const day=d.getDate(); 
+            mapDay.set(day, (mapDay.get(day)||0) + Number(r.entrada||0));
+          }
+        });
+        
+        const days=[...Array(31).keys()].map(i=>i+1);
+        const daily = days.map(d=> mapDay.get(d)||0);
+        const dataDaily3D = daily.map((v,i)=>[i, 0, v]); // [xIndex, yIndex, zValue]
+
+        const dailyOption = {
+          tooltip: { formatter: (p)=> `Dia ${days[p.data[0]]}<br/>Entradas: ${fmt(p.data[2])}` },
+          xAxis3D: { type: 'category', data: days.map(d=> String(d).padStart(2,'0')) },
+          yAxis3D: { type: 'category', data: ['Entradas'] },
+          zAxis3D: { type: 'value' },
+          grid3D: {
+            boxWidth: 140, boxDepth: 30,
+            viewControl: { projection: 'perspective', alpha: 25, beta: 20 },
+            light: { main: { intensity: 1.2 }, ambient: { intensity: 0.3 } }
+          },
+          series: [{
+            type: 'bar3D',
+            data: dataDaily3D,
+            shading: 'lambert',
+            bevelSize: 0.5,
+            itemStyle: { opacity: 0.95 }
+          }]
+        };
+        chartDaily3D.setOption(dailyOption, true);
+
+        // ----- Por Categoria -> Bar 3D -----
+        const catMap = new Map();
+        snaps.forEach(s=>{
+          const r=s.data();
+          if (r.year === y && r.month === m && r.type === "entrada") {
+            const c=r.category||'Outros';
+            catMap.set(c,(catMap.get(c)||0)+Number(r.entrada||0));
+          }
+        });
+        
+        const labels=[...catMap.keys()];
+        const values=[...catMap.values()];
+        const dataCat3D = values.map((v,i)=>[i, 0, v]);
+
+        const catOption = {
+          tooltip: { formatter: (p)=> `${labels[p.data[0]]}: ${fmt(p.data[2])}` },
+          xAxis3D: { type: 'category', data: labels },
+          yAxis3D: { type: 'category', data: ['Categoria'] },
+          zAxis3D: { type: 'value' },
+          grid3D: {
+            boxWidth: 120, boxDepth: 30,
+            viewControl: { projection: 'perspective', alpha: 25, beta: 30 },
+            light: { main: { intensity: 1.1 }, ambient: { intensity: 0.3 } }
+          },
+          series: [{
+            type: 'bar3D',
+            data: dataCat3D,
+            shading: 'lambert',
+            itemStyle: { opacity: 0.95 }
+          }]
+        };
+        chartCat3D.setOption(catOption, true);
+      } catch (error) {
+        console.error("Erro ao carregar gráficos:", error);
+      }
+    }
+
+    async function loadTitlesToday(user){
+      try {
+        // coleção titles: { uid, type: 'receber'|'pagar', value:Number, dueDate:Timestamp, paid:Boolean }
+        const start=new Date(); start.setHours(0,0,0,0);
+        const end=new Date(); end.setHours(23,59,59,999);
+
+        // Buscar apenas por uid (evita índice composto)
+        const qTitles = query(collection(db,"titles"), where("uid","==",user.uid));
+        const snaps = await getDocs(qTitles);
+        
+        let rTot=0, pTot=0;
+        snaps.forEach(s=>{
+          const r = s.data();
+          if (!r.paid) {
+            const dueDate = r.dueDate?.toDate ? r.dueDate.toDate() : new Date(r.dueDate);
+            if (dueDate >= start && dueDate <= end) {
+              if (r.type === "receber") {
+                rTot += Number(r.value||0);
+              } else if (r.type === "pagar") {
+                pTot += Number(r.value||0);
+              }
+            }
+          }
+        });
+        
+        kToReceive.textContent = fmt(rTot);
+        kToPay.textContent = fmt(pTot);
+      } catch (error) {
+        console.error("Erro ao carregar títulos:", error);
+        kToReceive.textContent = fmt(0);
+        kToPay.textContent = fmt(0);
+      }
+    }
+  </script>
+</body>
+</html>
