@@ -306,7 +306,7 @@
           }, { merge: true });
 
           msg("Conta criada! Redirecionando...", true);
-          window.location.href = "financeiro.html";
+          window.location.href = "home.html";
         } else {
           // Login
           const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -329,7 +329,7 @@
           }
 
           msg("Login ok! Redirecionando...", true);
-          window.location.href = "financeiro.html";
+          window.location.href = "home.html";
         }
       } catch (e) {
         console.error(e);
@@ -350,10 +350,10 @@
       }
     };
 
-    // Se já estiver logado, vai para financeiro
+    // Se já estiver logado, vai para home
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        window.location.href = "financeiro.html";
+        window.location.href = "home.html";
       }
     });
   </script>

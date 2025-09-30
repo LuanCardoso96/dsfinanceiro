@@ -447,7 +447,6 @@
       try {
         const q = query(
           collection(db, "launches"),
-          where("uid", "==", currentUser.uid),
           where("year", "==", Number(yearSel.value)),
           where("month", "==", Number(monthSel.value))
         );

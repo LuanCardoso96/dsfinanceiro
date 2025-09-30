@@ -188,8 +188,8 @@
     async function load(){
       try {
         const now=new Date();
-        // Buscar apenas por uid (evita índice composto)
-        const qy=query(collection(db,"events"), where("uid","==",uid));
+        // Buscar todos os eventos
+        const qy=query(collection(db,"events"));
         const snap=await getDocs(qy);
         let events=[];
         

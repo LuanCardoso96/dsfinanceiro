@@ -325,7 +325,7 @@
     // ===== Carregar produtos =====
     async function loadProducts() {
       try {
-        const q = query(collection(db, 'Estoque'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'Estoque'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
         products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderProducts();

@@ -294,8 +294,8 @@
         const start = new Date(); start.setHours(0,0,0,0);
         const end = new Date(); end.setHours(23,59,59,999);
 
-        // Entradas hoje - buscar apenas por uid e filtrar no JS
-        let qToday = query(collection(db,"launches"), where("uid","==",user.uid));
+        // Entradas hoje - buscar todos os dados
+        let qToday = query(collection(db,"launches"));
         let sumToday = 0;
         (await getDocs(qToday)).forEach(d=>{
           const r = d.data();
@@ -333,8 +333,8 @@
 
     async function loadTable(user,y,m){
       try {
-        // Buscar apenas por uid (evita índice composto)
-        let qMonth = query(collection(db,"launches"), where("uid","==",user.uid));
+        // Buscar todos os dados
+        let qMonth = query(collection(db,"launches"));
         const snaps = await getDocs(qMonth);
         let launches=[], running=0;
 
@@ -395,8 +395,8 @@
       try {
         ensureCharts();
 
-        // Buscar apenas por uid (evita índice composto)
-        const qAll = query(collection(db,"launches"), where("uid","==",user.uid));
+        // Buscar todos os dados
+        const qAll = query(collection(db,"launches"));
         const snaps = await getDocs(qAll);
         
         // ----- Diário (Entradas) -> Bar 3D -----
@@ -477,8 +477,8 @@
         const start=new Date(); start.setHours(0,0,0,0);
         const end=new Date(); end.setHours(23,59,59,999);
 
-        // Buscar apenas por uid (evita índice composto)
-        const qTitles = query(collection(db,"titles"), where("uid","==",user.uid));
+        // Buscar todos os dados
+        const qTitles = query(collection(db,"titles"));
         const snaps = await getDocs(qTitles);
         
         let rTot=0, pTot=0;

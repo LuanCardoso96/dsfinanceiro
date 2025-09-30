@@ -188,8 +188,8 @@
     
     async function load(){
       try {
-        // Buscar apenas por uid (evita índice composto)
-        const qy=query(collection(db,"funcionarios"), where("uid","==",uid));
+        // Buscar todos os funcionários
+        const qy=query(collection(db,"funcionarios"));
         const snap=await getDocs(qy);
         let funcionarios=[], total=0;
         
