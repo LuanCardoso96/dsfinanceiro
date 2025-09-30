@@ -273,7 +273,7 @@
     monthSel.onchange = refresh.onclick;
 
     // Opening balance doc helper (mesmo padrão do financeiro.html)
-    const obDocRef = (uid,y,m)=> doc(db,"monthlyBalances",`${uid}_${y}_${m}`);
+    const obDocRef = (y,m)=> doc(db,"monthlyBalances",`shared_${y}_${m}`);
 
     async function refreshAll(user){
       const y = Number(yearSel.value), m = Number(monthSel.value);
@@ -284,7 +284,7 @@
         loadTitlesToday(user)
       ]);
       // saldo inicial
-      const obSnap = await getDoc(obDocRef(user.uid,y,m));
+      const obSnap = await getDoc(obDocRef(y,m));
       const opening = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
       openingInfo.textContent = `Saldo inicial: ${fmt(opening)}`;
     }
@@ -320,7 +320,7 @@
         kInPeriod.textContent = fmt(sumIn);
 
         // Saldo do mês = saldoInicial + (entradas - saídas)
-        const obSnap = await getDoc(obDocRef(user.uid,y,m));
+        const obSnap = await getDoc(obDocRef(y,m));
         const opening = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
         kBalance.textContent = fmt(opening + sumIn - sumOut);
       } catch (error) {
@@ -354,7 +354,7 @@
         });
 
         // Abre saldo inicial
-        const obSnap = await getDoc(obDocRef(user.uid,y,m));
+        const obSnap = await getDoc(obDocRef(y,m));
         running = obSnap.exists()? Number(obSnap.data().opening||0) : 0;
 
         // Gerar HTML

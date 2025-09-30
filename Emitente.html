@@ -388,7 +388,6 @@
         salePrice: parseFloat(el('salePrice').value) || 0,
         quantity: parseInt(el('initialQuantity').value) || 0,
         description: el('productDescription').value.trim(),
-        uid: uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -547,7 +546,6 @@
           previousQuantity: currentModalProduct.quantity,
           newQuantity: newQuantity,
           notes: el('modalNotes').value,
-          uid: uid,
           createdAt: serverTimestamp()
         });
         

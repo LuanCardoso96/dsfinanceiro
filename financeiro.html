@@ -368,7 +368,7 @@
     catFilter.onchange = refreshBtn.onclick;
 
     // saldo inicial
-    const obDocRef = () => doc(db, "monthlyBalances", `${currentUser.uid}_${yearSel.value}_${monthSel.value}`);
+    const obDocRef = () => doc(db, "monthlyBalances", `shared_${yearSel.value}_${monthSel.value}`);
 
     async function loadOpeningBalance() {
       if (!currentUser) return;
@@ -389,7 +389,7 @@
       if (!currentUser) return;
       const opening = Number(openingBalanceInp.value || 0);
       const note = openingNoteInp.value || "";
-      await setDoc(obDocRef(), { uid: currentUser.uid, year: Number(yearSel.value), month: Number(monthSel.value), opening, note, updatedAt: serverTimestamp() }, { merge:true });
+      await setDoc(obDocRef(), { year: Number(yearSel.value), month: Number(monthSel.value), opening, note, updatedAt: serverTimestamp() }, { merge:true });
       openingBalance = opening;
       await loadData();
     };
@@ -419,7 +419,7 @@
       if (type === "saida" && saida <= 0) { formMsg.textContent = "Informe o valor de Saída."; return; }
 
       const docData = {
-        uid: currentUser.uid, date: dt, day, month, year, type,
+        date: dt, day, month, year, type,
         category: categorySel.value, modality: modalitySel.value,
         description: descriptionInp.value || "", cod: codInp.value || "",
         bank: bankInp.value || "", parcel: parcelInp.value || "",

@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regra geral: permitir leitura e escrita para usuários autenticados
+    // Todos os usuários logados podem acessar todos os dados
+    
+    // Coleção de usuários - cada usuário pode ler/escrever apenas seu próprio documento
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Coleções compartilhadas - todos os usuários autenticados podem ler e escrever
+    match /launches/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /funcionarios/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /Estoque/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /events/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /pagamentos/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /stockMovements/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /titles/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    match /monthlyBalances/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regra padrão para qualquer outra coleção
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

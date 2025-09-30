@@ -235,7 +235,7 @@
       const t=el('title').value.trim(); if(!t) return el('msg').textContent="Título obrigatório.";
       const d=el('date').value; const h=el('time').value||"00:00";
       const when = new Date(`${d}T${h}:00`);
-      await addDoc(collection(db,"events"),{uid,title:t,desc:el('desc').value||"",when,createdAt:serverTimestamp()});
+      await addDoc(collection(db,"events"),{title:t,desc:el('desc').value||"",when,createdAt:serverTimestamp()});
       el('msg').textContent="Evento criado."; el('clear').click(); await load();
     };
     el('clear').onclick=()=>{ el('title').value=""; el('date').value=""; el('time').value=""; el('desc').value=""; el('msg').textContent=""; };
